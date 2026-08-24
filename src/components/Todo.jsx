@@ -1,0 +1,149 @@
+import { useState, useEffect } from "react";
+const API_URL = import.meta.env.VITE_BACKEND_URL;
+
+function Todo() {
+  const [task, setTask] = useState("");
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState(null);
+  const [editedTask, setEditedTask] = useState("");
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/tasks`);
+        if (!res.ok) throw new Error("Failed to fetch tasks");
+        setTasks(await res.json());
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, []);
+
+  const addTask = async () => {
+    const title = task.trim();
+    if (!title) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      if (!res.ok) throw new Error("Failed to create task");
+
+      const newTask = await res.json();
+      setTasks((prevTasks) => [newTask, ...prevTasks]);
+      setTask("");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const deleteTask = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/api/tasks/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete task");
+      setTasks((prevTasks) => prevTasks.filter((item) => item._id !== id));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const updateTask = async (id) => {
+    const title = editedTask.trim();
+    if (!title) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/tasks/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      if (!res.ok) throw new Error("Failed to update task");
+
+      const updatedTask = await res.json();
+      setTasks((prevTasks) =>
+        prevTasks.map((item) => (item._id === id ? updatedTask : item))
+      );
+      setEditingId(null);
+      setEditedTask("");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  if (loading) return <p className="status-message">Loading tasks...</p>;
+
+  return (
+    <main className="todo-shell">
+      <header className="todo-header">
+        <p className="eyebrow">Daily focus</p>
+        <h1>Make room for what matters.</h1>
+        <p className="subtitle">A simple list for the little wins and big plans.</p>
+      </header>
+
+      <section className="todo-panel">
+        <div className="add-task">
+          <input
+            type="text"
+            placeholder="What needs doing?"
+            value={task}
+            onChange={(e) => setTask(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && addTask()}
+          />
+          <button className="add-button" onClick={addTask}>Add task</button>
+        </div>
+
+        <div className="list-heading">
+          <h2>Your tasks</h2>
+          <span className="task-count">
+            {tasks.length} {tasks.length === 1 ? "item" : "items"}
+          </span>
+        </div>
+
+        {tasks.length === 0 ? (
+          <p className="empty-state">Nothing here yet. Add your first task above.</p>
+        ) : (
+          <ul className="task-list">
+            {tasks.map((item) => (
+              <li className="task-row" key={item._id}>
+                {editingId === item._id ? (
+                  <div className="edit-row">
+                    <input
+                      value={editedTask}
+                      onChange={(e) => setEditedTask(e.target.value)}
+                      autoFocus
+                    />
+                    <button className="save-button" onClick={() => updateTask(item._id)}>Save</button>
+                    <button className="cancel-button" onClick={() => { setEditingId(null); setEditedTask(""); }}>
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <span className="task-title">{item.title}</span>
+                    <div className="task-actions">
+                      <button className="edit-button" onClick={() => { setEditingId(item._id); setEditedTask(item.title); }}>
+                        Edit
+                      </button>
+                      <button className="delete-button" onClick={() => deleteTask(item._id)}>Delete</button>
+                    </div>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </main>
+  );
+}
+
+export default Todo;
