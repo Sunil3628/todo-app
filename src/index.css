@@ -76,10 +76,60 @@ button:hover { transform: translateY(-1px); }
 .task-list { padding: 0; margin: 0; list-style: none; }
 .task-row { padding: 16px 0; border-top: 1px solid var(--line); }
 .task-row > :not(.edit-row) { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.task-title { color: var(--ink); line-height: 1.4; overflow-wrap: anywhere; }
+.task-content { display: flex; align-items: center; min-width: 0; }
+.task-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.task-copy { display: flex; flex-direction: column; min-width: 0; }
+.task-title { color: var(--ink); line-height: 1.4; overflow-wrap: anywhere; font-size: 1.05rem; }
+.task-title.done { text-decoration: line-through; color: #5b7b66; }
+.task-status { margin: 4px 0 0; font-size: .9rem; font-weight: 600; }
+.task-status.pending { color: var(--coral); }
+.task-status.done { color: var(--sage); }
+.task-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--coral);
+  color: var(--coral);
+  font-size: .92rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.task-check.done {
+  background: rgba(82, 146, 94, 0.12);
+  border-color: #4f9b67;
+  color: #4f9b67;
+}
+.task-check.pending {
+  background: rgba(231, 111, 81, 0.08);
+}
 .task-actions { flex-shrink: 0; display: flex; gap: 8px; }
-.edit-button, .cancel-button { color: var(--sage); background: transparent; }
-.delete-button { color: var(--coral); background: transparent; }
+.complete-button,
+.edit-button,
+.delete-button,
+.save-button,
+.cancel-button { padding: 8px 12px; font-size: .82rem; font-weight: 700; border-radius: 6px; }
+.complete-button {
+  color: #fff;
+  background: #5ab47b;
+  border: 1px solid rgba(59, 136, 84, 0.2);
+}
+.complete-button.pending { background: #fff; border: 1px solid rgba(188, 177, 163, 0.8); color: var(--coral); }
+.complete-button.done { background: #4f9b67; }
+.complete-button.pending:hover { background: #f8f4ef; }
+.complete-button.done:hover { background: #3f8657; }
+.edit-button, .cancel-button {
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid rgba(143, 155, 160, 0.65);
+}
+.delete-button {
+  color: var(--coral);
+  background: transparent;
+  border: 1px solid rgba(231, 111, 81, 0.65);
+}
 .edit-button, .delete-button, .save-button, .cancel-button { padding: 6px 8px; font-size: .82rem; font-weight: 700; }
 .save-button { padding: 10px 15px; color: #fff; background: var(--sage); }
 .edit-row { display: flex; gap: 8px; }

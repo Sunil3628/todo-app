@@ -34,11 +34,38 @@ function Todo() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title }),
       });
-      if (!res.ok) throw new Error("Failed to create task");
+
+      if (!res.ok) throw new Error("Failed to add task");
 
       const newTask = await res.json();
       setTasks((prevTasks) => [newTask, ...prevTasks]);
       setTask("");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const completeTask = async (id, completed) => {
+    try {
+      const res = await fetch(`${API_URL}/api/tasks/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          completed: !completed,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update task status");
+
+      const updatedTask = await res.json();
+
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task._id === updatedTask._id ? updatedTask : task
+        )
+      );
     } catch (error) {
       console.error(error);
     }
@@ -128,8 +155,28 @@ function Todo() {
                   </div>
                 ) : (
                   <>
-                    <span className="task-title">{item.title}</span>
+                    <div className="task-content">
+                      <div className="task-main">
+                        <span className={`task-check ${item.completed ? "done" : "pending"}`}>
+                          {item.completed ? "✓" : "○"}
+                        </span>
+                        <div className="task-copy">
+                          <span className={`task-title ${item.completed ? "done" : ""}`}>
+                            {item.title}
+                          </span>
+                          <p className={`task-status ${item.completed ? "done" : "pending"}`}>
+                            {item.completed ? "✅ Completed" : "⏳ Pending"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                     <div className="task-actions">
+                      <button
+                        className={`complete-button ${item.completed ? "done" : "pending"}`}
+                        onClick={() => completeTask(item._id, item.completed)}
+                      >
+                        {item.completed ? "Undo" : "Complete"}
+                      </button>
                       <button className="edit-button" onClick={() => { setEditingId(item._id); setEditedTask(item.title); }}>
                         Edit
                       </button>
