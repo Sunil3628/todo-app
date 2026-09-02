@@ -3,10 +3,13 @@ const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 function Todo() {
   const [task, setTask] = useState("");
+  const [priority, setPriority] = useState("medium");
+  const [dueDate, setDueDate] = useState("");
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editedTask, setEditedTask] = useState("");
+
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -32,7 +35,11 @@ function Todo() {
       const res = await fetch(`${API_URL}/api/tasks`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({
+          title,
+          priority,
+          dueDate: dueDate || null,
+        }),
       });
 
       if (!res.ok) throw new Error("Failed to add task");
@@ -40,6 +47,8 @@ function Todo() {
       const newTask = await res.json();
       setTasks((prevTasks) => [newTask, ...prevTasks]);
       setTask("");
+      setPriority("medium");
+      setDueDate("");
     } catch (error) {
       console.error(error);
     }
@@ -125,6 +134,18 @@ function Todo() {
             onChange={(e) => setTask(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addTask()}
           />
+          <select value={priority} onChange={(e) => setPriority(e.target.value)}>
+           // priority ---------
+            <option  value="low">Low priority</option>
+            <option value="medium">Medium priority</option>
+            <option value="high">High priority</option>
+          </select>
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            aria-label="Due date"
+          />
           <button className="add-button" onClick={addTask}>Add task</button>
         </div>
 
@@ -167,6 +188,14 @@ function Todo() {
                           <p className={`task-status ${item.completed ? "done" : "pending"}`}>
                             {item.completed ? "✅ Completed" : "⏳ Pending"}
                           </p>
+                          <div className="task-details">
+                            <span className={`priority priority-${item.priority || "medium"}`}>
+                              {item.priority || "medium"} priority
+                            </span>
+                            {item.dueDate && (
+                              <span>Due {new Date(item.dueDate).toLocaleDateString()}</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
