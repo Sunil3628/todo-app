@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-const API_URL = import.meta.env.VITE_BACKEND_URL;
 
-function Todo() {
+const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
+function Todo({ session, onLogout }) {
   const [task, setTask] = useState("");
   const [priority, setPriority] = useState("medium");
   const [dueDate, setDueDate] = useState("");
@@ -10,11 +11,18 @@ function Todo() {
   const [editingId, setEditingId] = useState(null);
   const [editedTask, setEditedTask] = useState("");
 
+  const authHeaders = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${session?.token}`,
+  };
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/tasks`);
+        const res = await fetch(`${API_URL}/api/tasks`, {
+          headers: authHeaders,
+        });
+
         if (!res.ok) throw new Error("Failed to fetch tasks");
         setTasks(await res.json());
       } catch (error) {
@@ -25,7 +33,7 @@ function Todo() {
     };
 
     fetchTasks();
-  }, []);
+  }, [session?.token]);
 
   const addTask = async () => {
     const title = task.trim();
@@ -34,7 +42,7 @@ function Todo() {
     try {
       const res = await fetch(`${API_URL}/api/tasks`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({
           title,
           priority,
@@ -58,9 +66,7 @@ function Todo() {
     try {
       const res = await fetch(`${API_URL}/api/tasks/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: authHeaders,
         body: JSON.stringify({
           completed: !completed,
         }),
@@ -84,6 +90,7 @@ function Todo() {
     try {
       const res = await fetch(`${API_URL}/api/tasks/${id}`, {
         method: "DELETE",
+        headers: authHeaders,
       });
       if (!res.ok) throw new Error("Failed to delete task");
       setTasks((prevTasks) => prevTasks.filter((item) => item._id !== id));
@@ -99,7 +106,7 @@ function Todo() {
     try {
       const res = await fetch(`${API_URL}/api/tasks/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({ title }),
       });
       if (!res.ok) throw new Error("Failed to update task");
@@ -120,9 +127,14 @@ function Todo() {
   return (
     <main className="todo-shell">
       <header className="todo-header">
-        <p className="eyebrow">Daily focus</p>
-        <h1>Make room for what matters.</h1>
-        <p className="subtitle">A simple list for the little wins and big plans.</p>
+        <div className="topbar">
+          <div>
+            <p className="eyebrow">Daily focus</p>
+            <h1>Make room for what matters.</h1>
+          </div>
+          <button className="logout-button" onClick={onLogout}>Logout</button>
+        </div>
+        <p className="subtitle">Welcome back, {session?.user?.name || "friend"}.</p>
       </header>
 
       <section className="todo-panel">
@@ -135,8 +147,7 @@ function Todo() {
             onKeyDown={(e) => e.key === "Enter" && addTask()}
           />
           <select value={priority} onChange={(e) => setPriority(e.target.value)}>
-           // priority ---------
-            <option  value="low">Low priority</option>
+            <option value="low">Low priority</option>
             <option value="medium">Medium priority</option>
             <option value="high">High priority</option>
           </select>
