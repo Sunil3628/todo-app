@@ -49,25 +49,8 @@ function AuthForm({ onAuth }) {
     <main className="auth-page">
       <section className="auth-card">
         <div className="auth-header">
-          <p className="eyebrow">Todo flow</p>
-          <h1>{mode === "login" ? "Welcome back" : "Create your account"}</h1>
-        </div>
-
-        <div className="auth-toggle" role="tablist" aria-label="Authentication mode">
-          <button
-            type="button"
-            className={mode === "login" ? "toggle active" : "toggle"}
-            onClick={() => setMode("login")}
-          >
-            Login
-          </button>
-          <button
-            type="button"
-            className={mode === "register" ? "toggle active" : "toggle"}
-            onClick={() => setMode("register")}
-          >
-            Register
-          </button>
+          <h1>{mode === "login" ? "Welcome Back" : "Create Your Account"}</h1>
+          <p>{mode === "login" ? "Sign in to access your todos" : "Sign up to start organizing your todos"}</p>
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
@@ -91,6 +74,7 @@ function AuthForm({ onAuth }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
+                autoComplete="email"
               required
             />
           </label>
@@ -101,7 +85,8 @@ function AuthForm({ onAuth }) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
+                placeholder="••••••••"
+                autoComplete={mode === "login" ? "current-password" : "new-password"}
               minLength={6}
               required
             />
@@ -110,9 +95,23 @@ function AuthForm({ onAuth }) {
           {error && <p className="auth-error">{error}</p>}
 
           <button className="primary-button" type="submit" disabled={loading}>
-            {loading ? "Please wait..." : mode === "login" ? "Login" : "Create account"}
+            {loading ? "Please wait..." : mode === "login" ? "Sign In" : "Create Account"}
           </button>
         </form>
+
+        <div className="auth-divider"><span>OR CONTINUE WITH</span></div>
+
+        <button className="google-button" type="button" aria-label="Continue with Google">
+          <strong>G</strong>
+          <span>Continue with Google</span>
+        </button>
+
+        <p className="auth-switch">
+          {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
+          <button type="button" onClick={() => setMode(mode === "login" ? "register" : "login")}>
+            {mode === "login" ? "Sign up" : "Sign in"}
+          </button>
+        </p>
       </section>
     </main>
   );
