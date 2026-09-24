@@ -63,12 +63,24 @@ function Todo({ session, onLogout }) {
   };
 
   const completeTask = async (id, completed) => {
+    const nextCompleted = !completed;
+    let previousTask;
+
+    setTasks((prevTasks) =>
+      prevTasks.map((task) => {
+        if (task._id !== id) return task;
+
+        previousTask = task;
+        return { ...task, completed: nextCompleted };
+      })
+    );
+
     try {
       const res = await fetch(`${API_URL}/api/tasks/${id}`, {
         method: "PUT",
         headers: authHeaders,
         body: JSON.stringify({
-          completed: !completed,
+          completed: nextCompleted,
         }),
       });
 
@@ -82,6 +94,13 @@ function Todo({ session, onLogout }) {
         )
       );
     } catch (error) {
+      if (previousTask) {
+        setTasks((prevTasks) =>
+          prevTasks.map((task) =>
+            task._id === previousTask._id ? previousTask : task
+          )
+        );
+      }
       console.error(error);
     }
   };
