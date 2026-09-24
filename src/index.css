@@ -110,6 +110,7 @@ button { cursor: pointer; }
   font-size: .7rem;
 }
 .google-button:hover { background: #fafafd; }
+.google-button > div { width: 100%; }
 .google-button strong { font-size: .9rem; font-family: Arial, sans-serif; }
 
 .auth-switch { margin: 14px 0 5px; text-align: center; color: #7d6c9f; font-size: .68rem; }

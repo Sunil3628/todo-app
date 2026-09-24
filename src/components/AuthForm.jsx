@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { GoogleLogin } from "@react-oauth/google";
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
@@ -15,8 +16,25 @@ function AuthForm({ onAuth }) {
     setError("");
   };
 
-  const handleGoogleSignIn = () => {
-    setError("Google sign-in is not configured. Use your email and password.");
+  const handleGoogleSignIn = async (response) => {
+    setError("");
+    setLoading(true);
+
+    try {
+      const result = await fetch(`${API_URL}/api/auth/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ credential: response.credential }),
+      });
+      const data = await result.json().catch(() => ({}));
+
+      if (!result.ok) throw new Error(data.message || "Google sign-in failed");
+      onAuth({ token: data.token, user: data.user });
+    } catch (googleError) {
+      setError(googleError.message || "Google sign-in failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -114,10 +132,16 @@ function AuthForm({ onAuth }) {
 
         <div className="auth-divider"><span>OR CONTINUE WITH</span></div>
 
-        <button className="google-button" type="button" aria-label="Continue with Google" onClick={handleGoogleSignIn}>
-          <strong>G</strong>
-          <span>Continue with Google</span>
-        </button>
+        <div className="google-button">
+          <GoogleLogin
+            onSuccess={handleGoogleSignIn}
+            onError={() => setError("Google sign-in failed")}
+            useOneTap={false}
+            theme="outline"
+            size="large"
+            width="300"
+          />
+        </div>
 
         <p className="auth-switch">
           {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
