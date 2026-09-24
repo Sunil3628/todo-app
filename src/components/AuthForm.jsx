@@ -10,6 +10,15 @@ function AuthForm({ onAuth }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const switchMode = () => {
+    setMode(mode === "login" ? "register" : "login");
+    setError("");
+  };
+
+  const handleGoogleSignIn = () => {
+    setError("Google sign-in is not configured. Use your email and password.");
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
@@ -19,8 +28,8 @@ function AuthForm({ onAuth }) {
       const endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/register";
       const payload =
         mode === "login"
-          ? { email, password }
-          : { name, email, password };
+          ? { email: email.trim().toLowerCase(), password }
+          : { name: name.trim(), email: email.trim().toLowerCase(), password };
 
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
@@ -28,7 +37,7 @@ function AuthForm({ onAuth }) {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         throw new Error(data.message || "Authentication failed");
@@ -39,7 +48,11 @@ function AuthForm({ onAuth }) {
         user: data.user,
       });
     } catch (submitError) {
-      setError(submitError.message || "Something went wrong");
+      setError(
+        submitError instanceof TypeError
+          ? "Unable to connect to the server. Start the backend and try again."
+          : submitError.message || "Something went wrong"
+      );
     } finally {
       setLoading(false);
     }
@@ -85,7 +98,7 @@ function AuthForm({ onAuth }) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="********"
                 autoComplete={mode === "login" ? "current-password" : "new-password"}
               minLength={6}
               required
@@ -101,14 +114,14 @@ function AuthForm({ onAuth }) {
 
         <div className="auth-divider"><span>OR CONTINUE WITH</span></div>
 
-        <button className="google-button" type="button" aria-label="Continue with Google">
+        <button className="google-button" type="button" aria-label="Continue with Google" onClick={handleGoogleSignIn}>
           <strong>G</strong>
           <span>Continue with Google</span>
         </button>
 
         <p className="auth-switch">
           {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
-          <button type="button" onClick={() => setMode(mode === "login" ? "register" : "login")}>
+          <button type="button" onClick={switchMode}>
             {mode === "login" ? "Sign up" : "Sign in"}
           </button>
         </p>
