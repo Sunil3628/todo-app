@@ -4,6 +4,16 @@ import Todo from "./components/Todo";
 
 function App() {
   const [session, setSession] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const callbackToken = params.get("token");
+    const callbackUser = params.get("user");
+
+    if (callbackToken && callbackUser) {
+      const callbackSession = { token: callbackToken, user: JSON.parse(callbackUser) };
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return callbackSession;
+    }
+
     const saved = localStorage.getItem("todo-session");
     return saved ? JSON.parse(saved) : null;
   });
