@@ -1,28 +1,24 @@
 import { useState, useEffect } from "react";
-
-const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 function Todo({ session, onLogout }) {
   const [task, setTask] = useState("");
-  const [priority, setPriority] = useState("medium");
-  const [dueDate, setDueDate] = useState("");
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editedTask, setEditedTask] = useState("");
-
   const authHeaders = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${session?.token}`,
+    Authorization: `Bearer ${session.token}`,
   };
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
         const res = await fetch(`${API_URL}/api/tasks`, {
-          headers: authHeaders,
+          headers: {
+            Authorization: `Bearer ${session.token}`,
+          },
         });
-
         if (!res.ok) throw new Error("Failed to fetch tasks");
         setTasks(await res.json());
       } catch (error) {
@@ -33,7 +29,7 @@ function Todo({ session, onLogout }) {
     };
 
     fetchTasks();
-  }, [session?.token]);
+  }, [session.token]);
 
   const addTask = async () => {
     const title = task.trim();
@@ -42,12 +38,8 @@ function Todo({ session, onLogout }) {
     try {
       const res = await fetch(`${API_URL}/api/tasks`, {
         method: "POST",
-        headers: authHeaders,
-        body: JSON.stringify({
-          title,
-          priority,
-          dueDate: dueDate || null,
-        }),
+        headers: { "Content-Type": "application/json", ...authHeaders },
+        body: JSON.stringify({ title }),
       });
 
       if (!res.ok) throw new Error("Failed to add task");
@@ -55,32 +47,21 @@ function Todo({ session, onLogout }) {
       const newTask = await res.json();
       setTasks((prevTasks) => [newTask, ...prevTasks]);
       setTask("");
-      setPriority("medium");
-      setDueDate("");
     } catch (error) {
       console.error(error);
     }
   };
 
   const completeTask = async (id, completed) => {
-    const nextCompleted = !completed;
-    let previousTask;
-
-    setTasks((prevTasks) =>
-      prevTasks.map((task) => {
-        if (task._id !== id) return task;
-
-        previousTask = task;
-        return { ...task, completed: nextCompleted };
-      })
-    );
-
     try {
       const res = await fetch(`${API_URL}/api/tasks/${id}`, {
         method: "PUT",
-        headers: authHeaders,
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders,
+        },
         body: JSON.stringify({
-          completed: nextCompleted,
+          completed: !completed,
         }),
       });
 
@@ -94,13 +75,6 @@ function Todo({ session, onLogout }) {
         )
       );
     } catch (error) {
-      if (previousTask) {
-        setTasks((prevTasks) =>
-          prevTasks.map((task) =>
-            task._id === previousTask._id ? previousTask : task
-          )
-        );
-      }
       console.error(error);
     }
   };
@@ -125,7 +99,7 @@ function Todo({ session, onLogout }) {
     try {
       const res = await fetch(`${API_URL}/api/tasks/${id}`, {
         method: "PUT",
-        headers: authHeaders,
+        headers: { "Content-Type": "application/json", ...authHeaders },
         body: JSON.stringify({ title }),
       });
       if (!res.ok) throw new Error("Failed to update task");
@@ -146,14 +120,15 @@ function Todo({ session, onLogout }) {
   return (
     <main className="todo-shell">
       <header className="todo-header">
-        <div className="topbar">
-          <div>
-            <p className="eyebrow">Daily focus</p>
-            <h1>Make room for what matters.</h1>
-          </div>
-          <button className="logout-button" onClick={onLogout}>Logout</button>
+        <div className="todo-header-bar">
+          <p className="eyebrow">Daily focus</p>
+          <button className="logout-button" type="button" onClick={onLogout}>
+            <span aria-hidden="true">↪</span>
+            Log out
+          </button>
         </div>
-        <p className="subtitle">Welcome back, {session?.user?.name || "friend"}.</p>
+        <h1>Make room for what matters.</h1>
+        <p className="subtitle">A simple list for the little wins and big plans.</p>
       </header>
 
       <section className="todo-panel">
@@ -164,17 +139,6 @@ function Todo({ session, onLogout }) {
             value={task}
             onChange={(e) => setTask(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addTask()}
-          />
-          <select value={priority} onChange={(e) => setPriority(e.target.value)}>
-            <option value="low">Low priority</option>
-            <option value="medium">Medium priority</option>
-            <option value="high">High priority</option>
-          </select>
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            aria-label="Due date"
           />
           <button className="add-button" onClick={addTask}>Add task</button>
         </div>
@@ -218,14 +182,6 @@ function Todo({ session, onLogout }) {
                           <p className={`task-status ${item.completed ? "done" : "pending"}`}>
                             {item.completed ? "✅ Completed" : "⏳ Pending"}
                           </p>
-                          <div className="task-details">
-                            <span className={`priority priority-${item.priority || "medium"}`}>
-                              {item.priority || "medium"} priority
-                            </span>
-                            {item.dueDate && (
-                              <span>Due {new Date(item.dueDate).toLocaleDateString()}</span>
-                            )}
-                          </div>
                         </div>
                       </div>
                     </div>

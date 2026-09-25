@@ -59,10 +59,25 @@ function AuthForm({ onAuth }) {
 
   return (
     <main className="auth-page">
+      <div className="auth-accent" aria-hidden="true" />
+      <section className="auth-intro">
+        <div className="brand-mark" aria-hidden="true">✓</div>
+        <p className="auth-kicker">A calmer way to plan</p>
+        <h1>Make space for the things that matter.</h1>
+        <p className="auth-intro-copy">
+          Keep your next steps close, clear, and easy to finish.
+        </p>
+        <div className="intro-note">
+          <span className="intro-note-dot" aria-hidden="true" />
+          <span>Small lists. Real progress.</span>
+        </div>
+      </section>
+
       <section className="auth-card">
         <div className="auth-header">
-          <h1>{mode === "login" ? "Welcome Back" : "Create Your Account"}</h1>
-          <p>{mode === "login" ? "Sign in to access your todos" : "Sign up to start organizing your todos"}</p>
+          <p className="form-eyebrow">{mode === "login" ? "Welcome back" : "Get started"}</p>
+          <h2>{mode === "login" ? "Sign in to your account" : "Create your account"}</h2>
+          <p>{mode === "login" ? "Pick up right where you left off." : "Your organized day starts here."}</p>
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
@@ -74,6 +89,7 @@ function AuthForm({ onAuth }) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
+                autoComplete="name"
                 required
               />
             </label>
@@ -86,7 +102,7 @@ function AuthForm({ onAuth }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-                autoComplete="email"
+              autoComplete="email"
               required
             />
           </label>
@@ -97,14 +113,14 @@ function AuthForm({ onAuth }) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-                placeholder="********"
-                autoComplete={mode === "login" ? "current-password" : "new-password"}
+              placeholder="Enter your password"
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
               minLength={6}
               required
             />
           </label>
 
-          {error && <p className="auth-error">{error}</p>}
+          {error && <p className="auth-error" role="alert">{error}</p>}
 
           <button className="primary-button" type="submit" disabled={loading}>
             {loading ? "Please wait..." : mode === "login" ? "Sign In" : "Create Account"}
@@ -114,6 +130,7 @@ function AuthForm({ onAuth }) {
         <div className="auth-divider"><span>OR CONTINUE WITH</span></div>
 
         <button className="google-button" type="button" onClick={handleGoogleSignIn}>
+          <span className="google-g">G</span>
           Continue with Google
         </button>
 
